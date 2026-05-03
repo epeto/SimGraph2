@@ -1,28 +1,25 @@
 
 // Representación de gráfica por listas de adyacencias
+// En este caso, se reemplaza la lista de adyacencias por un map, para
+// poder utilizar cualquier id, sin necesidad de indexar de 0 a n-1.
 
 package com.simgraph.model;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.TreeMap;
 
 import com.simgraph.dto.AlgorithmRequest;
 import com.simgraph.dto.EdgeDto;
-import com.simgraph.dto.VertexDto;
 
 public class GraphAdjacency extends AbstractGraph{
 
-    public List<Vertex> vertices; // lista de vértices
+    public TreeMap<Integer, Vertex> vertices; // mapa de vértices
 
     public GraphAdjacency(AlgorithmRequest request){
         this.directed = request.isDirected();
-        vertices = new ArrayList<>();
+        vertices = new TreeMap<>();
 
         // Se agregan los vértices
-        List<VertexDto> sortedVertices = request.getVertices();
-        sortedVertices.sort(null); // Solo para asegurar que la gráfica indexa a partir del 0
-        for (var v : sortedVertices) {
-            vertices.add(new Vertex(v.getId()));
+        for (var v : request.getVertices()) {
+            vertices.put(v.getId(), new Vertex(v.getId()));
         }
 
         // Se agregan las aristas

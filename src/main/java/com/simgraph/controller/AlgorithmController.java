@@ -61,7 +61,7 @@ public class AlgorithmController {
 
         AlgorithmResponse response = switch (name.toLowerCase()) {
             case "bfs"                -> new BFS().execute((GraphAdjacency)absGraph, src);
-            case "dfs"                -> new DFS().execute(graph, src);
+            case "dfs"                -> new DFS().execute((GraphAdjacency)absGraph, src);
             case "dijkstra"           -> new Dijkstra().execute(graph, src);
             case "bellman_ford"       -> new BellmanFord().execute(graph, src);
             case "floyd_warshall"     -> new FloydWarshall().execute(graph);

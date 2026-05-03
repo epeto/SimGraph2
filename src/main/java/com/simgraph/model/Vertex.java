@@ -3,6 +3,7 @@ package com.simgraph.model;
 //Clase vértice
 
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 import org.springframework.data.util.Pair;
 
@@ -12,6 +13,7 @@ public class Vertex implements Comparable<Vertex>{
     public int d; //distancia o llave.
     public Vertex p; //Padre (o predecesor) de este vértice.
     public ColorEnum estado; //Indica el estado del vértice (si ha sido visitado o no, etc.)
+    public ListIterator<Pair<Vertex, Integer>> iter; //Iterador para recorrer la lista de adyacencias.
 
     /**
      * Constructor de la clase vértice.
@@ -23,6 +25,7 @@ public class Vertex implements Comparable<Vertex>{
         d = 0;
         estado = ColorEnum.WHITE;
         p = null;
+        iter = null; // Solo se necesita para los algoritmos de búsqueda en profundidad.
     }
 
     /**

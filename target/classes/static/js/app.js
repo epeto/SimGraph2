@@ -107,7 +107,7 @@ const matrixTable   = document.getElementById('matrixTable');
 const matrixTitle   = document.getElementById('matrixTitle');
 const dsPanel       = document.getElementById('dsPanel');
 const dsPanelHint   = document.getElementById('dsPanelHint');
-const bqSvg         = document.getElementById('bqSvg');
+const dataStructSvg = document.getElementById('dataStructSvg');
 const btnDsSmaller  = document.getElementById('btnDsSmaller');
 const btnDsLarger   = document.getElementById('btnDsLarger');
 const btnDsClose    = document.getElementById('btnDsClose');
@@ -116,7 +116,7 @@ const btnDsClose    = document.getElementById('btnDsClose');
 
 let dsPanelHeight = 230;
 const DS_MIN_HEIGHT = 80;
-const DS_MAX_HEIGHT = 400;
+const DS_MAX_HEIGHT = 800;
 let isDraggingPanelBorder = false;
 let dragStartY = 0;
 let dragStartHeight = 0;
@@ -419,6 +419,8 @@ function renderStep(step) {
     renderBinomialQueue(extra.bq, step.vertexColors);
   } else if (extra.queue) {
     renderQueue(extra.queue, step.vertexColors);
+  } else if (extra.stack) {
+    renderStack(extra.stack, step.vertexColors);
   } else {
     dsPanel.classList.add('hidden');
   }
@@ -544,14 +546,16 @@ const BQ_R    = 21;   // node circle radius
 const BQ_PAD  = 22;   // px gap between separate trees
 const BQ_TOP  = 20;   // px reserved at top for Bk labels
 
-const BQ_FILL = {
+const DataStructure_Fill = {
   white: '#bdc3d8', gray: '#f0a500', red: '#e94560',
   orange: '#ff6b35', black: '#4a4a6a', green: '#2ecc71'
 };
 
-function bqTextColor(color) {
+function nodeTextColor(color) {
   return (color === 'red' || color === 'black') ? '#dde' : '#111';
 }
+
+const nodeStroke = "#30305a"; // default stroke for nodes in the data structures
 
 function renderBinomialQueue(bqState, vertexColors) {
   const { trees, lastOp, lastVertex, minVertex } = bqState;
@@ -596,8 +600,8 @@ function renderBinomialQueue(bqState, vertexColors) {
     const isMin  = n.v === minVertex;
     const isLast = lastOp && n.v === lastVertex;
     const color  = (vertexColors && vertexColors[String(n.v)]) || 'white';
-    const fill   = BQ_FILL[color]  || BQ_FILL.white;
-    const tc     = bqTextColor(color);
+    const fill   = DataStructure_Fill[color]  || DataStructure_Fill.white;
+    const tc     = nodeTextColor(color);
     const stroke = isMin ? '#f5e132' : '#30305a';
     const sw     = isMin ? 2.5 : 1.5;
     const kLbl   = n.k === -1 ? '∞' : String(n.k);
@@ -618,10 +622,10 @@ function renderBinomialQueue(bqState, vertexColors) {
             `font-size="11" font-family="monospace" fill="${tc}" opacity="0.9">${kLbl}</text>`;
   }
 
-  bqSvg.setAttribute('width',   svgW);
-  bqSvg.setAttribute('height',  svgH);
-  bqSvg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
-  bqSvg.innerHTML = html;
+  dataStructSvg.setAttribute('width',   svgW);
+  dataStructSvg.setAttribute('height',  svgH);
+  dataStructSvg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+  dataStructSvg.innerHTML = html;
 }
 
 function bqLayout(node, x0, y, nodes, edges, parent) {
@@ -652,7 +656,7 @@ function renderQueue(queue, vertexColors) {
   const boxH = 40;
   const svgH = 60;
 
-  let html = '';
+  let htmlLabel = '';
 
   // Draw boxes for each element
   queue.forEach((vertex, idx) => {
@@ -660,22 +664,62 @@ function renderQueue(queue, vertexColors) {
     const y = 10;
     
     const color = (vertexColors && vertexColors[String(vertex)]) || 'white';
-    const fill = BQ_FILL[color] || BQ_FILL.white;
-    const tc = bqTextColor(color);
+    const fill = DataStructure_Fill[color] || DataStructure_Fill.white;
+    const tc = nodeTextColor(color);
 
     // Draw rectangle
-    html += `<rect x="${x}" y="${y}" width="${boxSize}" height="${boxH}" ` +
-            `fill="${fill}" stroke="#30305a" stroke-width="1.5" rx="2"/>`;
+    htmlLabel += `<rect x="${x}" y="${y}" width="${boxSize}" height="${boxH}" ` +
+            `fill="${fill}" stroke="${nodeStroke}" stroke-width="1.5" rx="2"/>`;
     
     // Draw vertex id
-    html += `<text x="${(x + boxSize / 2).toFixed(1)}" y="${(y + boxH / 2 + 5).toFixed(1)}" ` +
+    htmlLabel += `<text x="${(x + boxSize / 2).toFixed(1)}" y="${(y + boxH / 2 + 5).toFixed(1)}" ` +
             `text-anchor="middle" dominant-baseline="middle" ` +
             `font-size="14" font-weight="bold" fill="${tc}">v${vertex}</text>`;
   });
 
-  bqSvg.setAttribute('width', totalW);
-  bqSvg.setAttribute('height', svgH);
-  bqSvg.setAttribute('viewBox', `0 0 ${totalW} ${svgH}`);
-  bqSvg.innerHTML = html;
+  dataStructSvg.setAttribute('width', totalW);
+  dataStructSvg.setAttribute('height', svgH);
+  dataStructSvg.setAttribute('viewBox', `0 0 ${totalW} ${svgH}`);
+  dataStructSvg.innerHTML = htmlLabel;
 }
 
+// ─── Stack visualization ───────────────────────────────────────────────────────
+function renderStack(stack, vertexColors){
+    if (!stack || stack.length === 0) { dsPanel.classList.add('hidden'); return; }
+
+  dsPanel.classList.remove('hidden');
+
+  dsPanelHint.textContent = 'Stack';
+
+  const boxSize = 40;
+  const boxPad = 8;
+  const totalH = stack.length * (boxSize + boxPad) + boxPad;
+  const boxH = 40;
+  const svgW = 60;
+
+  let htmlLabel = '';
+
+  // Draw boxes for each element
+  stack.forEach((vertex, idx) => {
+    const x = 10;
+    const y = boxPad + (stack.length - 1 - idx) * (boxSize + boxPad);
+    
+    const color = (vertexColors && vertexColors[String(vertex)]) || 'white';
+    const fill = DataStructure_Fill[color] || DataStructure_Fill.white;
+    const tc = nodeTextColor(color);
+
+    // Draw rectangle
+    htmlLabel += `<rect x="${x}" y="${y}" width="${boxSize}" height="${boxH}" ` +
+            `fill="${fill}" stroke="${nodeStroke}" stroke-width="1.5" rx="2"/>`;
+    
+    // Draw vertex id
+    htmlLabel += `<text x="${(x + boxSize / 2).toFixed(1)}" y="${(y + boxH / 2 + 5).toFixed(1)}" ` +
+            `text-anchor="middle" dominant-baseline="middle" ` +
+            `font-size="14" font-weight="bold" fill="${tc}">v${vertex}</text>`;
+  });
+
+  dataStructSvg.setAttribute('width', svgW);
+  dataStructSvg.setAttribute('height', totalH);
+  dataStructSvg.setAttribute('viewBox', `0 0 ${svgW} ${totalH}`);
+  dataStructSvg.innerHTML = htmlLabel;
+}

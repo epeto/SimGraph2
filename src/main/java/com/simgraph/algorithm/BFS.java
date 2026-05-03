@@ -24,7 +24,8 @@ public class BFS {
         List<ExecutionState> steps = new ArrayList<>();
         int stepNum = 0;
 
-        for(Vertex v : graph.vertices){
+        // Inicialización de las distancias en los vértices
+        for(Vertex v : graph.vertices.values()){
             v.d = Integer.MAX_VALUE/2;
         }
 
@@ -49,7 +50,9 @@ public class BFS {
                     steps.add(snap(stepNum++, "Descubriendo "+v.toString()+" a través de "+u.toString(), graph, cola, u, v));
                 }
             }
-            u.estado = ColorEnum.BLACK; // negro es cuando ya se visitaron todos sus vecinos
+            if(u.estado != ColorEnum.RED){
+                u.estado = ColorEnum.BLACK; // negro es cuando ya se visitaron todos sus vecinos
+            }
             steps.add(snap(stepNum++, u.toString()+" completado", graph, cola, u, null));
         }
 
@@ -60,20 +63,20 @@ public class BFS {
     private ExecutionState snap(int step, String desc, GraphAdjacency graph, Queue<Vertex> queue, Vertex source, Vertex target) {
         // Etiquetas
         Map<Integer, String> labels = new HashMap<>();
-        for(Vertex v : graph.vertices){
+        for(Vertex v : graph.vertices.values()){
             String label = (v.d >= Integer.MAX_VALUE/2) ? "∞" : String.valueOf(v.d);
             labels.put(v.id, label);
         }
 
         // Colores
         Map<Integer, String> colors = new HashMap<>();
-        for(Vertex v : graph.vertices){
+        for(Vertex v : graph.vertices.values()){
             colors.put(v.id, v.estado.name().toLowerCase());
         }
 
         // Aristas del árbol BFS
         List<int[]> treeEdges = new ArrayList<>();
-        for(Vertex v : graph.vertices){
+        for(Vertex v : graph.vertices.values()){
             if(v.p != null){
                 treeEdges.add(new int[]{v.p.id, v.id});
             }
