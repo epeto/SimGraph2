@@ -1,7 +1,5 @@
 
 // Representación de gráfica por listas de adyacencias
-// En este caso, se reemplaza la lista de adyacencias por un map, para
-// poder utilizar cualquier id, sin necesidad de indexar de 0 a n-1.
 
 package com.simgraph.model;
 import java.util.TreeMap;
@@ -14,6 +12,7 @@ public class GraphAdjacency extends AbstractGraph{
     public TreeMap<Integer, Vertex> vertices; // mapa de vértices
 
     public GraphAdjacency(AlgorithmRequest request){
+        tamano = request.getEdges().size();
         this.directed = request.isDirected();
         vertices = new TreeMap<>();
 

@@ -1,5 +1,6 @@
 # Maven
 target/
+target/classes
 .m2/
 
 # IDE

@@ -2,5 +2,5 @@
 package com.simgraph.model;
 
 public enum ColorEnum {
-    WHITE, GRAY, BLACK, ORANGE, RED
+    WHITE, GRAY, BLACK, ORANGE, RED, GREEN
 }

@@ -421,6 +421,8 @@ function renderStep(step) {
     renderQueue(extra.queue, step.vertexColors);
   } else if (extra.stack) {
     renderStack(extra.stack, step.vertexColors);
+  } else if (extra.binomialQueue) {
+    renderBinQueue(extra.binomialQueue, step.vertexColors);
   } else {
     dsPanel.classList.add('hidden');
   }
@@ -541,9 +543,9 @@ loadExample();
 // ─── Binomial Heap visualization ───────────────────────────────────────────────
 
 const BQ_UNIT = 56;   // px width allocated to a B0 leaf slot
-const BQ_LH   = 68;   // px between levels
+const BQ_LH   = 15;   // px between levels
 const BQ_R    = 21;   // node circle radius
-const BQ_PAD  = 22;   // px gap between separate trees
+const BQ_PAD  = 15;   // px gap between separate trees
 const BQ_TOP  = 20;   // px reserved at top for Bk labels
 
 const DataStructure_Fill = {
@@ -721,5 +723,78 @@ function renderStack(stack, vertexColors){
   dataStructSvg.setAttribute('width', svgW);
   dataStructSvg.setAttribute('height', totalH);
   dataStructSvg.setAttribute('viewBox', `0 0 ${svgW} ${totalH}`);
+  dataStructSvg.innerHTML = htmlLabel;
+}
+
+// ---- Binomial queue visualization -------------------
+function renderBinQueue(bqState, vertexColors){
+  if (!bqState || bqState.length === 0) { dsPanel.classList.add('hidden'); return; }
+
+  dsPanel.classList.remove('hidden');
+
+  dsPanelHint.textContent = 'Binomial Queue';
+
+  let leftPad = 20;
+  let treeWidth = 0;
+  const topPad = 20;
+  let htmlLabel = '';
+  let maxTreeHeight = 0;
+
+
+  // Se dibujan primero las líneas
+  for(const tree of bqState){
+    tree.forEach((node, idx) => {
+      if(idx === 0){
+        if(node[0] > maxTreeHeight){
+          maxTreeHeight = node[0];
+        }
+        treeWidth = node[1];
+      } else {
+        if(node[4] != -1){ // Solo se agrega la línea si tiene padre
+          const x1 = node[3]*(BQ_PAD + 2*BQ_R) + leftPad + BQ_R;
+          const y1 = node[2]*(BQ_LH + 2*BQ_R) + topPad + BQ_R;
+          const x2 = node[5]*(BQ_PAD + 2*BQ_R) + leftPad + BQ_R;
+          const y2 = node[4]*(BQ_LH + 2*BQ_R) + topPad + BQ_R;
+          htmlLabel += `<line x1="${x1}" y1="${y1}" ` +
+            `x2="${x2}" y2="${y2}" stroke="${DataStructure_Fill.white}" stroke-width="1.5"/>`;
+        }
+      }
+    });
+    leftPad += treeWidth*(BQ_PAD + 2*BQ_R);
+  }
+
+  leftPad = 20;
+  // Luego los círculos y etiquetas
+  for(const tree of bqState){
+    tree.forEach((node, idx) => {
+      if(idx === 0){
+        treeWidth = node[1];
+      } else {
+        const x1 = node[3]*(BQ_PAD + 2*BQ_R) + leftPad + BQ_R;
+        const y1 = node[2]*(BQ_LH + 2*BQ_R) + topPad + BQ_R;
+        const color = (vertexColors && vertexColors[String(node[0])]) || 'white';
+        const fill = DataStructure_Fill[color] || DataStructure_Fill.white;
+        const tc = nodeTextColor(color);
+        htmlLabel += `<circle cx="${x1}" cy="${y1}" r="${BQ_R}" ` +
+            `fill="${fill}" stroke="#252540" stroke-width="${2}"/>`;
+        
+        let nodeLabel = String(node[0]) + ", ";
+        if(node[1] >= 1073741823){
+          nodeLabel += "∞";
+        } else {
+          nodeLabel += String(node[1]);
+        }
+        htmlLabel += `<text x="${x1}" y="${y1}" ` +
+            `text-anchor="middle" dominant-baseline="middle" ` +
+            `font-size="12" font-weight="bold" fill="${tc}">${nodeLabel}</text>`;
+      }
+    });
+    leftPad += treeWidth*(BQ_PAD + 2*BQ_R);
+  }
+
+  const dsHeight = maxTreeHeight * (BQ_LH + 2 * BQ_R) + topPad + BQ_R;
+  dataStructSvg.setAttribute('width', leftPad);
+  dataStructSvg.setAttribute('height', dsHeight);
+  dataStructSvg.setAttribute('viewBox', `0 0 ${leftPad} ${dsHeight}`);
   dataStructSvg.innerHTML = htmlLabel;
 }

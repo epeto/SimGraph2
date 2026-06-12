@@ -97,8 +97,7 @@ public class DFS{
             highlighted = List.of();
         }
 
-        //Extrae los id's de los vértices de la cola
-        // TODO: hacer la interfaz en Javascript para la pila.
+        //Extrae los id's de los vértices de la pila
         List<Integer> pila = stack.stream().map(v -> v.id).toList();
 
         return new ExecutionState(step,
