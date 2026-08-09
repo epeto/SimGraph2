@@ -109,7 +109,7 @@ button:hover { background: var(--border); }
 
 .hidden { display: none !important; }
 
-/* ── Data Structure Panel (binomial heap overlay) ──────────────────────────── */
+/* ── Data Structure Panel ──────────────────────────── */
 #dsPanel {
   position: absolute;
   bottom: 0; left: 0; right: 0;

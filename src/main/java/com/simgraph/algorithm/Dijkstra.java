@@ -138,6 +138,7 @@ public class Dijkstra {
         );
     }
 
+    // Algoritmo principal
     public AlgorithmResponse execute(GraphAdjacency graph, int source) {
 
         List<ExecutionState> steps = new ArrayList<>();

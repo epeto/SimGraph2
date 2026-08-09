@@ -540,13 +540,7 @@ document.addEventListener('keydown', e => {
 // Load a default example on startup
 loadExample();
 
-// ─── Binomial Heap visualization ───────────────────────────────────────────────
-
-const BQ_UNIT = 56;   // px width allocated to a B0 leaf slot
-const BQ_LH   = 15;   // px between levels
-const BQ_R    = 21;   // node circle radius
-const BQ_PAD  = 15;   // px gap between separate trees
-const BQ_TOP  = 20;   // px reserved at top for Bk labels
+// ---------------- Data structure visualization -------------------------------------
 
 const DataStructure_Fill = {
   white: '#bdc3d8', gray: '#f0a500', red: '#e94560',
@@ -559,92 +553,7 @@ function nodeTextColor(color) {
 
 const nodeStroke = "#30305a"; // default stroke for nodes in the data structures
 
-function renderBinomialQueue(bqState, vertexColors) {
-  const { trees, lastOp, lastVertex, minVertex } = bqState;
-  if (!trees || trees.length === 0) { dsPanel.classList.add('hidden'); return; }
-  dsPanel.classList.remove('hidden');
-
-  if      (lastOp === 'extract')  dsPanelHint.textContent = `extract-min → v${lastVertex}`;
-  else if (lastOp === 'decrease') dsPanelHint.textContent = `decrease-key(v${lastVertex})`;
-  else if (lastOp === 'insert')   dsPanelHint.textContent = `insert(v${lastVertex})`;
-  else                            dsPanelHint.textContent = '';
-
-  const nodes = [], edges = [], labels = [];
-  let xCursor = BQ_PAD;
-
-  for (const tree of trees) {
-    const tw = Math.pow(2, tree.deg) * BQ_UNIT;
-    labels.push({ x: xCursor + tw / 2, deg: tree.deg });
-    bqLayout(tree, xCursor, BQ_TOP + BQ_R + 6, nodes, edges, null);
-    xCursor += tw + BQ_PAD;
-  }
-
-  const svgW   = Math.max(xCursor, 140);
-  const maxDeg = trees.reduce((m, t) => Math.max(m, t.deg), 0);
-  const svgH   = BQ_TOP + (maxDeg + 1) * BQ_LH + BQ_R + 10;
-
-  let html = '';
-
-  // Bk degree labels
-  for (const { x, deg } of labels) {
-    html += `<text x="${x.toFixed(0)}" y="13" text-anchor="middle" ` +
-            `font-size="9" fill="#484868" font-family="monospace">B${deg}</text>`;
-  }
-
-  // Edges (behind nodes)
-  for (const e of edges) {
-    html += `<line x1="${e.x1.toFixed(1)}" y1="${e.y1.toFixed(1)}" ` +
-            `x2="${e.x2.toFixed(1)}" y2="${e.y2.toFixed(1)}" stroke="#252540" stroke-width="1.5"/>`;
-  }
-
-  // Nodes
-  for (const n of nodes) {
-    const isMin  = n.v === minVertex;
-    const isLast = lastOp && n.v === lastVertex;
-    const color  = (vertexColors && vertexColors[String(n.v)]) || 'white';
-    const fill   = DataStructure_Fill[color]  || DataStructure_Fill.white;
-    const tc     = nodeTextColor(color);
-    const stroke = isMin ? '#f5e132' : '#30305a';
-    const sw     = isMin ? 2.5 : 1.5;
-    const kLbl   = n.k === -1 ? '∞' : String(n.k);
-
-    if (isLast) {
-      html += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${BQ_R + 5}" ` +
-              `fill="none" stroke="#e94560" stroke-width="1.5" stroke-dasharray="3,2"/>`;
-    }
-    html += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${BQ_R}" ` +
-            `fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
-    // vertex id (top half)
-    html += `<text x="${n.x.toFixed(1)}" y="${(n.y - 5).toFixed(1)}" ` +
-            `text-anchor="middle" dominant-baseline="middle" ` +
-            `font-size="12" font-weight="bold" fill="${tc}">${n.v}</text>`;
-    // distance key (bottom half)
-    html += `<text x="${n.x.toFixed(1)}" y="${(n.y + 8).toFixed(1)}" ` +
-            `text-anchor="middle" dominant-baseline="middle" ` +
-            `font-size="11" font-family="monospace" fill="${tc}" opacity="0.9">${kLbl}</text>`;
-  }
-
-  dataStructSvg.setAttribute('width',   svgW);
-  dataStructSvg.setAttribute('height',  svgH);
-  dataStructSvg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
-  dataStructSvg.innerHTML = html;
-}
-
-function bqLayout(node, x0, y, nodes, edges, parent) {
-  const w  = Math.pow(2, node.deg) * BQ_UNIT;
-  const cx = x0 + w / 2;
-  const pos = { v: node.v, k: node.k, x: cx, y };
-  nodes.push(pos);
-  if (parent) edges.push({ x1: parent.x, y1: parent.y, x2: cx, y2: y });
-  let childX = x0;
-  for (const child of (node.ch || [])) {
-    const cw = Math.pow(2, child.deg) * BQ_UNIT;
-    bqLayout(child, childX, y + BQ_LH, nodes, edges, pos);
-    childX += cw;
-  }
-}
-
-// ─── Queue visualization ───────────────────────────────────────────────────────
+// ─── Queue ───────────────────────────────────────────────────────
 
 function renderQueue(queue, vertexColors) {
   if (!queue || queue.length === 0) { dsPanel.classList.add('hidden'); return; }
@@ -685,7 +594,7 @@ function renderQueue(queue, vertexColors) {
   dataStructSvg.innerHTML = htmlLabel;
 }
 
-// ─── Stack visualization ───────────────────────────────────────────────────────
+// ─── Stack ───────────────────────────────────────────────────────
 function renderStack(stack, vertexColors){
     if (!stack || stack.length === 0) { dsPanel.classList.add('hidden'); return; }
 
@@ -726,8 +635,13 @@ function renderStack(stack, vertexColors){
   dataStructSvg.innerHTML = htmlLabel;
 }
 
-// ---- Binomial queue visualization -------------------
+// ---- Binomial queue -------------------
 function renderBinQueue(bqState, vertexColors){
+
+  const BQ_LH   = 15;   // px between levels
+  const BQ_R    = 21;   // node circle radius
+  const BQ_PAD  = 15;   // px gap between separate nodes
+
   if (!bqState || bqState.length === 0) { dsPanel.classList.add('hidden'); return; }
 
   dsPanel.classList.remove('hidden');

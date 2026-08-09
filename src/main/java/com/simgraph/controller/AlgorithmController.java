@@ -50,10 +50,11 @@ public class AlgorithmController {
             case "cut_vertices":
             case "blocks":
             case "edge_classification":
+            case "bellman_ford":
                 absGraph = new GraphAdjacency(request);
                 break;
             default:
-                absGraph = new GraphAdjacency(request); //TODO: cambiar después.
+                absGraph = new GraphAdjacency(request); //TODO: cambiar cuando se implementen algoritmos basados en lista de aristas.
         }
 
         Graph graph = new Graph(request);
@@ -63,7 +64,7 @@ public class AlgorithmController {
             case "bfs"                -> new BFS().execute((GraphAdjacency)absGraph, src);
             case "dfs"                -> new DFS().execute((GraphAdjacency)absGraph, src);
             case "dijkstra"           -> new Dijkstra().execute((GraphAdjacency)absGraph, src);
-            case "bellman_ford"       -> new BellmanFord().execute(graph, src);
+            case "bellman_ford"       -> new BellmanFord().execute((GraphAdjacency)absGraph, src);
             case "floyd_warshall"     -> new FloydWarshall().execute(graph);
             case "kruskal"            -> new Kruskal().execute(graph);
             case "prim"               -> new Prim().execute(graph, src);

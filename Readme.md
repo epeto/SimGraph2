@@ -10,4 +10,6 @@ Comando para ejecutar:
 
 ## Algoritmos implementados hasta el momento:
 - BFS
+- DFS
 - Dijkstra
+- Bellman Ford
