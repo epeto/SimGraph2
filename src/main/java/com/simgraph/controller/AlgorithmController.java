@@ -29,6 +29,7 @@ import com.simgraph.dto.AlgorithmResponse;
 import com.simgraph.model.AbstractGraph;
 import com.simgraph.model.Graph;
 import com.simgraph.model.GraphAdjacency;
+import com.simgraph.model.GraphMatrix;
 
 @RestController
 @RequestMapping("/api/algorithm")
@@ -53,6 +54,10 @@ public class AlgorithmController {
             case "bellman_ford":
                 absGraph = new GraphAdjacency(request);
                 break;
+            case "floyd_warshall":
+            case "transitive_closure":
+                absGraph = new GraphMatrix(request);
+                break;
             default:
                 absGraph = new GraphAdjacency(request); //TODO: cambiar cuando se implementen algoritmos basados en lista de aristas.
         }
@@ -65,7 +70,7 @@ public class AlgorithmController {
             case "dfs"                -> new DFS().execute((GraphAdjacency)absGraph, src);
             case "dijkstra"           -> new Dijkstra().execute((GraphAdjacency)absGraph, src);
             case "bellman_ford"       -> new BellmanFord().execute((GraphAdjacency)absGraph, src);
-            case "floyd_warshall"     -> new FloydWarshall().execute(graph);
+            case "floyd_warshall"     -> new FloydWarshall().execute((GraphMatrix)absGraph);
             case "kruskal"            -> new Kruskal().execute(graph);
             case "prim"               -> new Prim().execute(graph, src);
             case "kosaraju"           -> new Kosaraju().execute(graph);

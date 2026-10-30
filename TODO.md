@@ -1,0 +1,3 @@
+- Cambiar sensibilidad del Zoom con el scroll del mouse
+- Agregar feature de guardado de archivos
+- Agregar mensaje de error para algoritmo de Bellman

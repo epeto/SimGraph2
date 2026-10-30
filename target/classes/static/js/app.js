@@ -72,7 +72,8 @@ const cy = cytoscape({
     }
   ],
   elements: [],
-  layout: { name: 'preset' }
+  layout: { name: 'preset' },
+  wheelSensitivity: 0.1 // zoom ratio (mouse scroll)
 });
 
 // ─── State ─────────────────────────────────────────────────────────────────────
@@ -111,6 +112,9 @@ const dataStructSvg = document.getElementById('dataStructSvg');
 const btnDsSmaller  = document.getElementById('btnDsSmaller');
 const btnDsLarger   = document.getElementById('btnDsLarger');
 const btnDsClose    = document.getElementById('btnDsClose');
+
+// ----- Constant values -------------------
+const INF = 1073741823;
 
 // ─── Data structure panel size control ───────────────────────────────────────
 
@@ -441,8 +445,8 @@ function findEdge(u, v) {
 // ─── Matrix rendering ──────────────────────────────────────────────────────────
 
 function renderMatrix(extra, isBool) {
-  const { matrix, vertices, k, activeI, activeJ } = extra;
-  matrixTitle.textContent = isBool ? 'Reachability Matrix' : 'Distance Matrix';
+  const { matrix, vertices, activeI, activeJ } = extra;
+  matrixTitle.textContent = isBool ? 'Cerradura Transitiva' : 'Matriz de distancias';
   matrixOverlay.classList.remove('hidden');
 
   let html = '<table><tr><th></th>';
@@ -453,9 +457,8 @@ function renderMatrix(extra, isBool) {
     html += `<tr><th>${vertices[i]}</th>`;
     row.forEach((cell, j) => {
       let cls = '';
-      if (i === k || j === k) cls = 'active-k';
       if (i === activeI && j === activeJ) cls = 'active-ij';
-      const display = isBool ? (cell ? '1' : '0') : cell;
+      const display = isBool ? (cell ? '1' : '0') : (cell >= INF ? '∞' : String(cell));
       html += `<td class="${cls}">${display}</td>`;
     });
     html += '</tr>';

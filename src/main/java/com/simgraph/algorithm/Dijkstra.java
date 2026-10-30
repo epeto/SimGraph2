@@ -23,7 +23,7 @@ public class Dijkstra {
         if(a >= INF || b >= INF){
             return INF;
         }else{
-            return a+b;
+            return Math.min(a+b, INF);
         }
     }
 
