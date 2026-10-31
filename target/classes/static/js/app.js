@@ -6,15 +6,15 @@ const cy = cytoscape({
   container: document.getElementById('cy'),
   style: [
     {
-      selector: 'node',
+      selector: 'node', // aquí se definen las características visuales del vértice
       style: {
         'label': 'data(label)',
         'text-valign': 'center',
         'text-halign': 'center',
         'font-size': '12px',
         'text-wrap': 'wrap',
-        'text-max-width': '52px',
-        'width': 54, 'height': 54,
+        'text-max-width': '40px',
+        'width': 40, 'height': 40,
         'background-color': '#bdc3d8',
         'border-width': 2,
         'border-color': '#8890a8',
@@ -47,7 +47,7 @@ const cy = cytoscape({
       style: { 'border-width': 3, 'border-color': '#fff' }
     },
     {
-      selector: 'edge',
+      selector: 'edge', // aquí se definen las características visuales de las aristas
       style: {
         'label': 'data(label)',
         'font-size': '11px',
@@ -55,7 +55,7 @@ const cy = cytoscape({
         'text-background-color': '#1a1a2e',
         'text-background-opacity': 1,
         'text-background-padding': '2px',
-        'width': 2,
+        'width': 3,
         'line-color': '#3a3a5a',
         'target-arrow-color': '#3a3a5a',
         'target-arrow-shape': 'data(arrowShape)',
@@ -97,6 +97,9 @@ const btnLayout     = document.getElementById('btnLayout');
 const btnExample    = document.getElementById('btnExample');
 const stepCounter   = document.getElementById('stepCounter');
 const stepDesc      = document.getElementById('stepDesc');
+const btnSave       = document.getElementById('btnSave');
+const btnLoad       = document.getElementById('btnLoad');
+const fileInput     = document.getElementById('fileInput');
 const btnFirst      = document.getElementById('btnFirst');
 const btnPrev       = document.getElementById('btnPrev');
 const btnPlay       = document.getElementById('btnPlay');
@@ -263,7 +266,7 @@ btnLayout.addEventListener('click', () => {
 btnExample.addEventListener('click', loadExample);
 
 // ─── Example graph ─────────────────────────────────────────────────────────────
-
+// Hardcoded example
 function loadExample() {
   cy.elements().remove();
   nextId = 0;
@@ -284,6 +287,149 @@ function loadExample() {
     }});
   });
 }
+
+// ------ Save / Load ------------------------------------------------------------
+
+// convierte la gráfica en pantalla a un documento xml
+function graphToXml(){
+  const doc = document.implementation.createDocument(null, 'graph', null);
+  const root = doc.documentElement;
+  root.setAttribute('directed', String(graphTypeEl.value === 'directed')); // true or false
+
+  const verticesEl = doc.createElement('vertices');
+  cy.nodes().forEach(node => {
+    const v = doc.createElement('vertex');
+    const pos = node.position();
+    v.setAttribute('id', node.id());
+    v.setAttribute('x', String(Math.round(pos.x)));
+    v.setAttribute('y', String(Math.round(pos.y)));
+    verticesEl.appendChild(v);
+  });
+
+  const edgesEl = doc.createElement('edges');
+  cy.edges().forEach(edge => {
+    const e = doc.createElement('edge');
+    e.setAttribute('source', edge.data('source'));
+    e.setAttribute('target', edge.data('target'));
+    e.setAttribute('weight', String(edge.data('weight') || 1));
+    edgesEl.appendChild(e);
+  });
+
+  root.appendChild(verticesEl);
+  root.appendChild(edgesEl);
+
+  const xml = new XMLSerializer().serializeToString(doc)
+    .replace(/(<\/?(?:vertices|edges)>|<(?:vertices|edges)\/>)/g, '\n $1')
+    .replace(/(<(?:vertex|edge) )/g, '\n    $1')
+    .replace(/<\/graph>$/, '\n</graph>');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' + xml + '\n';
+}
+
+function parseIntAttr(el, name){
+  const raw = el.getAttribute(name);
+  const n = Number(raw);
+  if(raw === null || raw.trim() === '' || !Number.isInteger(n)){
+    throw new Error(`<${el.tagName}> has missing or invalid "${name}" attribute`);
+  }
+  return n;
+}
+
+function parseGraphXml(text) {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error('Malformed XML file');
+
+  const root = doc.documentElement;
+  if (root.tagName !== 'graph') throw new Error('Root element must be <graph>');
+
+  const directedAttr = root.getAttribute('directed');
+  const directed = directedAttr === null ? null : directedAttr === 'true';
+
+  const ids = new Set();
+  const vertices = [...root.querySelectorAll('vertices > vertex')].map(el => {
+    const v = { id: parseIntAttr(el, 'id'), x: parseIntAttr(el, 'x'), y: parseIntAttr(el, 'y') };
+    if (ids.has(v.id)) throw new Error(`Duplicate vertex id ${v.id}`);
+    ids.add(v.id);
+    return v;
+  });
+
+  const edgeKeys = new Set();
+  const edges = [...root.querySelectorAll('edges > edge')].map(el => {
+    const source = parseIntAttr(el, 'source');
+    const target = parseIntAttr(el, 'target');
+    const raw = el.getAttribute('weight');
+    const weight = raw === null || raw.trim() === '' ? 1 : parseIntAttr(el, 'weight');
+    if (!ids.has(source) || !ids.has(target)) {
+      throw new Error(`Edge ${source}-${target} references an unknown vertex`);
+    }
+    const key = `${source}-${target}`;
+    if (edgeKeys.has(key)) throw new Error(`Duplicate edge ${key}`);
+    edgeKeys.add(key);
+    return { source, target, weight };
+  });
+
+  return { directed, vertices, edges };
+}
+
+function renderGraph({ directed, vertices, edges }) {
+  stopPlay();
+  cy.elements().remove();
+  resetPlayback();
+  matrixOverlay.classList.add('hidden');
+  if (directed !== null) graphTypeEl.value = directed ? 'directed' : 'undirected';
+
+  vertices.forEach(({ id, x, y }) => {
+    cy.add({ group: 'nodes', data: { id: String(id), label: String(id) }, position: { x, y } });
+  });
+  edges.forEach(({ source, target, weight }) => addEdge(String(source), String(target), weight));
+
+  nextId = vertices.reduce((m, v) => Math.max(m, v.id + 1), 0);
+  cy.fit(undefined, 40);
+}
+
+btnSave.addEventListener('click', async () => {
+  const xml = graphToXml();
+
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'graph.xml',
+        types: [{ description: 'Graph XML', accept: { 'application/xml': ['.xml'] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(xml);
+      await writable.close();
+    } catch (e) {
+      if (e.name !== 'AbortError') alert('Error: ' + e.message);
+    }
+    return;
+  }
+
+  let name = prompt('File name:', 'graph.xml');
+  if (name === null) return;
+  name = name.trim() || 'graph.xml';
+  if (!name.toLowerCase().endsWith('.xml')) name += '.xml';
+
+  const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+btnLoad.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  try {
+    renderGraph(parseGraphXml(await file.text()));
+  } catch (e) {
+    alert('Error: ' + e.message);
+  } finally {
+    fileInput.value = '';
+  }
+});
 
 // ─── Run algorithm ─────────────────────────────────────────────────────────────
 

@@ -10,8 +10,6 @@ import com.simgraph.model.ExecutionState;
 import com.simgraph.model.GraphMatrix;
 
 
-// TODO: modificar el script de javascript para desplegar la matriz
-
 public class FloydWarshall{
 
     private static final int INF = Integer.MAX_VALUE / 2;

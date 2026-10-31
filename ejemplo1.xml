@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graph directed="true">
+ <vertices>
+    <vertex id="0" x="259" y="288"/>
+    <vertex id="1" x="266" y="452"/>
+    <vertex id="2" x="476" y="285"/>
+    <vertex id="3" x="466" y="460"/>
+    <vertex id="4" x="706" y="279"/>
+    <vertex id="5" x="709" y="467"/>
+    <vertex id="6" x="448" y="681"/>
+    <vertex id="7" x="996" y="369"/>
+ </vertices>
+ <edges>
+    <edge source="0" target="2" weight="80"/>
+    <edge source="2" target="4" weight="92"/>
+    <edge source="4" target="7" weight="62"/>
+    <edge source="1" target="3" weight="64"/>
+    <edge source="0" target="1" weight="26"/>
+    <edge source="3" target="5" weight="21"/>
+    <edge source="5" target="7" weight="87"/>
+    <edge source="2" target="5" weight="50"/>
+    <edge source="6" target="5" weight="27"/>
+    <edge source="1" target="6" weight="82"/>
+ </edges>
+</graph>
